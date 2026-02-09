@@ -39,7 +39,10 @@ app.innerHTML = `
 
       <div class="body">
         <textarea id="editor" spellcheck="false" placeholder="Open a file to begin..."></textarea>
-        <div id="charCount" class="char-count" aria-hidden="true">000000</div>
+        <div class="char-status" aria-hidden="true">
+          <span id="autosaveStatus" class="autosave">AUTO</span>
+          <span id="charCount" class="char-count">000000</span>
+        </div>
       </div>
     </section>
   </div>
@@ -55,6 +58,8 @@ const drawer = document.querySelector("#drawer");
 const menuOpen = document.querySelector("#menuOpen");
 const menuSave = document.querySelector("#menuSave");
 const menuSaveAs = document.querySelector("#menuSaveAs");
+const autosaveStatus = document.querySelector("#autosaveStatus");
+
 
 menuSave.disabled = false;
 menuSaveAs.disabled = false;
@@ -62,6 +67,12 @@ menuSaveAs.disabled = false;
 //Global variables
 let currentFilePath = null;
 let dirty = false;
+let autosaveTimer = null;
+let autosaveInFlight = false;
+
+const AUTOSAVE_DEBOUNCE_MS = 1200;
+const AUTOSAVE_INTERVAL_MS = 20000;
+
 
 function syncSaveState() {
     menuSave.disabled = !(currentFilePath && dirty);
@@ -113,6 +124,7 @@ menuSave.addEventListener("click", async () => {
         showSavedIndicator();
     }
     syncSaveState();
+    setAutosaveState("idle");
 });
 
 editor.addEventListener("input", () => {
@@ -158,6 +170,7 @@ menuSaveAs.addEventListener("click", async () => {
     dirty = false;
     syncSaveState();
     showSavedIndicator();
+    setAutosaveState("idle");
 });
 
 window.addEventListener("keydown", (e) => {
@@ -176,3 +189,85 @@ function updateCharCount() {
 
 editor.addEventListener("input", updateCharCount);
 updateCharCount();
+
+// File association / Open with: main -> renderer push
+window.api?.onFileOpened?.((res) => {
+    if (!res?.filePath) return;
+
+    const justName = res.filePath.split(/[/\\]/).pop();
+    currentFilePath = res.filePath;
+    dirty = false;
+    syncSaveState();
+
+    topFile.textContent = justName;
+    editor.value = res.content ?? "";
+    updateCharCount();
+
+    // на всякий: закрыть drawer
+    drawer.classList.remove("open");
+    railBtn.classList.remove("active");
+});
+
+function setAutosaveState(state) {
+    autosaveStatus.classList.remove("saving", "saved");
+
+    if (state === "saving") {
+        autosaveStatus.textContent = "AUTO…";
+        autosaveStatus.classList.add("saving");
+    }
+
+    if (state === "saved") {
+        autosaveStatus.textContent = "AUTO•";
+        autosaveStatus.classList.add("saved");
+
+        setTimeout(() => {
+            autosaveStatus.textContent = "AUTO ";
+            autosaveStatus.classList.remove("saved");
+        }, 1200);
+    }
+
+    if (state === "idle") {
+        autosaveStatus.textContent = "AUTO";
+    }
+}
+
+async function autosaveNow() {
+    if (!(currentFilePath && dirty)) return;
+    if (autosaveInFlight) return;
+
+    autosaveInFlight = true;
+    setAutosaveState("saving");
+
+    try {
+        const content = editor.value;
+        const res = await window.api.saveFile(currentFilePath, content);
+        if (res?.ok) {
+            dirty = false;
+            syncSaveState();
+            setAutosaveState("saved");
+        }
+    } finally {
+        autosaveInFlight = false;
+    }
+}
+
+function scheduleAutosave() {
+    if (!currentFilePath) return;
+
+    if (autosaveTimer) clearTimeout(autosaveTimer);
+    autosaveTimer = setTimeout(() => {
+        autosaveTimer = null;
+        void autosaveNow();
+    }, AUTOSAVE_DEBOUNCE_MS);
+}
+
+editor.addEventListener("input", () => {
+    if (!currentFilePath) return;
+    dirty = true;
+    syncSaveState();
+    scheduleAutosave();
+});
+
+setInterval(() => {
+    if (currentFilePath && dirty) void autosaveNow();
+}, AUTOSAVE_INTERVAL_MS);

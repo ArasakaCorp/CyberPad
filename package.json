@@ -1,6 +1,6 @@
 {
   "name": "cyberpad",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "electron/main.js",
   "scripts": {
@@ -42,6 +42,22 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "CyberPad"
-    }
+    },
+    "fileAssociations": [
+      {
+        "ext": "txt",
+        "name": "Text file",
+        "description": "CyberPad text document",
+        "role": "Editor",
+        "icon": "electron/assets/icons/icon.ico"
+      },
+      {
+        "ext": "md",
+        "name": "Markdown file",
+        "description": "CyberPad markdown document",
+        "role": "Editor",
+        "icon": "electron/assets/icons/icon.ico"
+      }
+    ]
   }
 }

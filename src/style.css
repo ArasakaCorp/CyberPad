@@ -578,20 +578,41 @@ textarea{
     to   { transform: translateX(100%); }
 }
 
-.char-count{
+.char-status {
     position: absolute;
     right: 65px;
-    bottom: 9px;
+    bottom: 12px;
 
-    font-size: 11px;
-    letter-spacing: 0.22em;
-    color: rgba(207,233,242,0.28);
+    display: flex;
+    flex-direction: row;        /* слева -> право */
+    align-items: baseline;
+    gap: 12px;
 
-    text-shadow: 0 0 10px rgba(51,214,255,0.08);
     user-select: none;
     pointer-events: none;
 
-    /* чтобы выглядело как элемент HUD, а не “текст” */
-    mix-blend-mode: screen;
     opacity: 0.85;
+    mix-blend-mode: screen;
+}
+
+/* AUTO блок фиксированной ширины, чтобы не прыгал */
+.autosave {
+    width: 40px;                /* под AUTO… и AUTO ✓ */
+    text-align: left;           /* AUTO всегда "прилипает" слева */
+    font-size: 11px;
+    letter-spacing: 0.12em;
+
+    color: rgba(51,214,255,0.85);
+    transition: opacity .2s ease, color .2s ease;
+}
+
+.autosave.saving { opacity: 0.7; }
+.autosave.saved  { color: rgba(120,255,200,0.95); }
+
+/* Счётчик как был, но без absolute */
+.char-count {
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    color: rgba(207,233,242,0.28);
+    text-shadow: 0 0 10px rgba(51,214,255,0.08);
 }
