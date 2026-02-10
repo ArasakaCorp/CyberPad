@@ -206,3 +206,9 @@ ipcMain.handle("file:saveAs", async (_event, suggestedName, content) => {
 
     return { filePath };
 });
+
+ipcMain.handle("file:openPath", async (_event, filePath) => {
+    if (!filePath) return null;
+    const content = await fs.readFile(filePath, "utf-8");
+    return { filePath, content };
+});

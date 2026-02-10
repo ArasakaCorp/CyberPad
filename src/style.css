@@ -616,3 +616,52 @@ textarea{
     color: rgba(207,233,242,0.28);
     text-shadow: 0 0 10px rgba(51,214,255,0.08);
 }
+
+/* Recent files */
+.drawer-sep{
+    height: 1px;
+    margin: 10px 0 8px;
+    background: rgba(51,214,255,0.12);
+}
+
+.recent-title{
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    opacity: 0.55;
+    margin: 6px 0 8px;
+}
+
+.recent-list{
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.recent-item{
+    width: 100%;
+    text-align: left;
+    padding: 8px 10px;
+    border: 1px solid rgba(51,214,255,0.10);
+    background: rgba(8,16,22,0.35);
+    color: rgba(207,233,242,0.78);
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+}
+
+.recent-item:hover{
+    border-color: rgba(51,214,255,0.22);
+    background: rgba(8,16,22,0.50);
+}
+
+.recent-path{
+    display: block;
+    margin-top: 4px;
+    font-size: 10px;
+    letter-spacing: 0.02em;
+    opacity: 0.55;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

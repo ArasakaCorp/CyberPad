@@ -7,4 +7,5 @@ contextBridge.exposeInMainWorld("api", {
     close: () => ipcRenderer.invoke("window:close"),
     saveFile: (filePath, content) => ipcRenderer.invoke("file:save", filePath, content),
     saveAs: (suggestedName, content) => ipcRenderer.invoke("file:saveAs", suggestedName, content),
+    openPath: (filePath) => ipcRenderer.invoke("file:openPath", filePath),
 });
