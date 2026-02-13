@@ -3,6 +3,7 @@ import iconUrl from "../assets/icons/icon.png";
 export function renderLayout(root) {
     root.innerHTML = `
     <div class="hud panel">
+      <div class="dropOverlay" aria-hidden="true">DROP TO OPEN</div>
       <div class="noise"></div>
       <div class="hud-deco" aria-hidden="true"></div>
 
@@ -35,7 +36,9 @@ export function renderLayout(root) {
               <div id="recentList" class="recent-list"></div>
             </div>
 
-            <div class="drawer-hint">Click rail to close</div>
+            <div class="creditsBar">
+              <span id="creditsText"></span><a id="creditsLink" href="#">GitHub</a>
+            </div>
           </div>
         </div>
 

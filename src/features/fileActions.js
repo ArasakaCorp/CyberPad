@@ -108,4 +108,5 @@ export function initOpenSave(dom, state, { onOpened }) {
         // кнопки
         syncSaveState(dom, state);
     }
+
 }

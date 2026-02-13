@@ -1,10 +1,11 @@
-import { app, BrowserWindow, dialog, ipcMain } from "electron";
+import { app, BrowserWindow, ipcMain, dialog, shell } from "electron";
 import fs from "fs/promises";
 import os from "os";
 import path from "path";
 import { fileURLToPath } from "url";
 import { Menu } from "electron";
 import { globalShortcut } from "electron";
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,7 +41,6 @@ function extractFilePathFromArgv(argv) {
 async function openFileInApp(filePath) {
     try {
         if (!filePath) return;
-        logMain("OPEN request=", String(filePath));
 
         const content = await fs.readFile(filePath, "utf-8");
 
@@ -83,6 +83,17 @@ function createWindow() {
     const isDev = !app.isPackaged;
 
     win.once("ready-to-show", () => win.show());
+    // Guard: never navigate away on dropped files / links
+    win.webContents.on("will-navigate", (e, url) => {
+        // Разрешаем обычные перезагрузки/навигацию в dev (http://localhost:5173)
+        // Блокируем только попытки уйти на file:// (часто это drag'n'drop файлов)
+        if (url?.startsWith("file://")) {
+            e.preventDefault();
+        }
+    });
+
+    // Guard: never allow window.open / target=_blank popups
+    win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
 
     // Dev: Vite server
     if (isDev) {
@@ -94,15 +105,11 @@ function createWindow() {
 
         win.webContents.on("did-finish-load", () => {
             const p = pendingOpenPath ?? extractFilePathFromArgv(process.argv);
-            logMain("DID_FINISH p=", String(p), "pending=", String(pendingOpenPath));
 
             pendingOpenPath = null;
             if (p) openFileInApp(p);
         });
     }
-    win.webContents.on("did-fail-load", (_e, code, desc) => {
-        console.log("did-fail-load:", code, desc);
-    });
 }
 
 
@@ -113,15 +120,11 @@ if (!gotLock) {
     app.quit();
 } else {
     app.on("second-instance", async (_event, argv) => {
-        logMain("SECOND argv=", JSON.stringify(argv));
-
         const filePath = extractFilePathFromArgv(argv);
         if (filePath) {
             if (win && !win.isDestroyed()) await openFileInApp(filePath);
             else pendingOpenPath = filePath;
         }
-        logMain("SECOND extracted=", String(filePath));
-
 
         if (win) {
             if (win.isMinimized()) win.restore();
@@ -212,3 +215,13 @@ ipcMain.handle("file:openPath", async (_event, filePath) => {
     const content = await fs.readFile(filePath, "utf-8");
     return { filePath, content };
 });
+
+ipcMain.handle("file:openByPath", async (_e, filePath) => {
+    // optional security: allow only local files, validate extension, etc.
+    const data = await fs.readFile(filePath, "utf8");
+    return { filePath, data };
+});
+
+
+ipcMain.handle("shell:openExternal", (_e, url) => shell.openExternal(url));
+ipcMain.handle("app:getVersion", () => app.getVersion());

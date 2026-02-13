@@ -3,7 +3,7 @@ import { closeDrawer } from "./drawer.js";
 import { applyOpenedFile } from "./fileActions.js";
 
 const RECENT_KEY = "cyberpad:recent";
-const RECENT_MAX = 8;
+const RECENT_MAX = 6;
 
 function loadRecent() {
     try { return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]"); }

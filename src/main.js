@@ -12,10 +12,14 @@ import { initWindowButtons, initOpenSave } from "./features/fileActions.js";
 import { initAutosave } from "./features/autosave.js";
 import { initRecent, pushRecent } from "./features/recentFiles.js";
 import { initHistory } from "./features/history.js";
+import { initDragDrop } from "./features/dragDrop.js";
+import { initCredits } from "./features/credits.js";
+
 
 
 const root = document.querySelector("#app");
 renderLayout(root);
+
 
 const dom = getDom();
 const state = createState();
@@ -26,6 +30,7 @@ initWindowButtons(dom);
 initDrawer(dom);
 initCounter(dom);
 initShortcuts(dom);
+initCredits(dom, state);
 
 initRecent(dom, state);
 
@@ -34,10 +39,11 @@ const autosave = initAutosave(dom, state, {
     intervalMs: 20000
 });
 
-initOpenSave(dom, state, {
-    onOpened: (filePath) => {
-        pushRecent(dom, filePath);
-        autosave.setAutosaveState("idle");
-        history.reset(dom.editor.value);
-    }
-});
+const onOpened = (filePath) => {
+    pushRecent(dom, filePath);
+    autosave.setAutosaveState("idle");
+    history.reset(dom.editor.value);
+};
+
+initOpenSave(dom, state, { onOpened });
+initDragDrop(dom, state, { onOpened });
